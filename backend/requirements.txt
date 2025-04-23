@@ -1,0 +1,23 @@
+pandas==2.2.3
+pydantic==2.9.2
+validators==0.34.0
+pydantic_settings
+python-multipart>=0.0.5
+uvicorn>=0.15.0
+fastapi>=0.68.0
+pdfplumber
+aiofiles
+
+
+
+# Language Models & Embeddings
+langchain
+langchain-community
+langchain-openai
+openai
+
+# Vector Stores
+faiss-cpu
+chromadb
+pgvector
+psycopg2-binary
