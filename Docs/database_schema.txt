@@ -1,0 +1,103 @@
+# AI AGENT PLATFORM DATABASE SCHEMA
+
+## USERS & AUTHENTICATION
+------------------------------------------------------------------
+
+### Table: users
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| id            | UUID         | PRIMARY KEY                   |
+| username      | VARCHAR(50)  | NOT NULL, UNIQUE              |
+| email         | VARCHAR(100) | NOT NULL, UNIQUE              |
+| password_hash | VARCHAR(255) | NOT NULL                      |
+| created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| updated_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| is_active     | BOOLEAN      | NOT NULL, DEFAULT TRUE        |
+| is_admin      | BOOLEAN      | NOT NULL, DEFAULT FALSE       |
+
+### Table: refresh_tokens
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| id            | UUID         | PRIMARY KEY                   |
+| user_id       | UUID         | FOREIGN KEY (users.id)        |
+| token_hash    | VARCHAR(255) | NOT NULL, UNIQUE              |
+| expires_at    | TIMESTAMP    | NOT NULL                      |
+| created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| is_revoked    | BOOLEAN      | NOT NULL, DEFAULT FALSE       |
+INDEX: idx_refresh_tokens_user_id (user_id)
+
+### Table: user_preferences
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| user_id       | UUID         | PRIMARY KEY, FOREIGN KEY (users.id) |
+| theme         | VARCHAR(20)  | DEFAULT 'light'                |
+| language      | VARCHAR(10)  | DEFAULT 'en'                  |
+| default_agent_id | UUID      | NULL, FOREIGN KEY (agents.id)  |
+| notification_enabled | BOOLEAN | DEFAULT TRUE                |
+| created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| updated_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+
+
+
+
+## CONVERSATIONS & MESSAGES
+------------------------------------------------------------------
+
+### Table: conversations
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| id            | UUID         | PRIMARY KEY                   |
+| user_id       | UUID         | FOREIGN KEY (users.id)        |
+| title         | VARCHAR(255) | NULL                          |
+| created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| updated_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| is_archived   | BOOLEAN      | NOT NULL, DEFAULT FALSE       |
+INDEX: idx_conversations_user_id (user_id)
+
+### Table: messages
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| id            | UUID         | PRIMARY KEY                   |
+| conversation_id | UUID       | FOREIGN KEY (conversations.id)|
+| sender_type   | VARCHAR(20)  | NOT NULL                      |
+| sender_id     | UUID         | NOT NULL                      |
+| content       | TEXT         | NOT NULL                      |
+| metadata      | JSONB        | NULL                          |
+| created_at    | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+INDEX: idx_messages_conversation_id (conversation_id)
+INDEX: idx_messages_created_at (created_at)
+
+
+
+## ANALYTICS & SYSTEM
+------------------------------------------------------------------
+
+### Table: api_requests
+| Column        | Type         | Constraints                    |
+|---------------|--------------|-------------------------------|
+| id            | UUID         | PRIMARY KEY                   |
+| user_id       | UUID         | NULL, FOREIGN KEY (users.id)  |
+| endpoint      | VARCHAR(255) | NOT NULL                      |
+| method        | VARCHAR(10)  | NOT NULL                      |
+| status_code   | INTEGER      | NOT NULL                      |
+| request_time  | TIMESTAMP    | NOT NULL, DEFAULT NOW()       |
+| response_time | INTEGER      | NOT NULL                      |
+| ip_address    | VARCHAR(45)  | NULL                          |
+| user_agent    | VARCHAR(255) | NULL                          |
+INDEX: idx_api_requests_user_id (user_id)
+INDEX: idx_api_requests_request_time (request_time)
+
+
+
+
+## RELATIONSHIPS
+------------------------------------------------------------------
+
+1. users 1:N refresh_tokens
+2. users 1:1 user_preferences
+3. users 1:N conversations
+4. conversations 1:N messages
+5. users 1:N api_requests
+
+# Note: Additional relationships will be added as other tables 
+# (agents, models, documents, etc.) are implemented in future iterations.
